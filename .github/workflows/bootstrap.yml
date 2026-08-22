@@ -1,21 +1,19 @@
 name: bootstrap-publish
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/bootstrap.yml'
+  pull_request:
+    types: [opened]
 
 permissions:
   contents: write
 
 jobs:
   publish:
-    if: github.event.head_commit.message != 'chore: publish abwrap 3.0.3'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: main
           fetch-depth: 0
 
       - name: Reconstruct and verify source archive
