@@ -1,0 +1,9 @@
+/build/
+/build-*/
+*.o
+*.a
+*.so
+compile_commands.json
+__pycache__/
+/logs/
+termux-diagnostics*.log

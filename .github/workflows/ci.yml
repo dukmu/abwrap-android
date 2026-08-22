@@ -1,0 +1,14 @@
+name: ci
+on: [push, pull_request]
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        cc: [gcc, clang]
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y cmake ${{ matrix.cc }}
+      - run: cmake -S . -B build -DABW_ENABLE_WERROR=ON -DBUILD_TESTING=ON -DCMAKE_C_COMPILER=${{ matrix.cc }}
+      - run: cmake --build build -j2
+      - run: ctest --test-dir build --output-on-failure
