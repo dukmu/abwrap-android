@@ -370,7 +370,20 @@ static int fd_mode(pid_t pid, int fd, const abw_policy_t *policy, abw_mode_t *mo
     char internal[PATH_MAX];
     if (snprintf(internal, sizeof(internal), "%s/internal", policy->session_root) < (int)sizeof(internal)) {
         const char *suffix = NULL;
-        if (abw_path_prefix(internal, host, &suffix)) { *mode = ABW_MODE_RO; return 0; }
+        if (abw_path_prefix(internal, host, &suffix)) {
+            /* Ephemeral (--tmpfs/--dir) backing files live under
+             * session_root/internal/ephemeral and are legitimate RW targets
+             * for the sandboxed process (e.g. futimens/futimesat on a file
+             * created inside --tmpfs). Keep hard-blocking every other
+             * internal path (session metadata, scratch, supervisor state). */
+            char ephem[PATH_MAX];
+            const char *ephem_suffix = NULL;
+            if (snprintf(ephem, sizeof(ephem), "%s/internal/ephemeral", policy->session_root) >= (int)sizeof(ephem)
+                || !abw_path_prefix(ephem, host, &ephem_suffix)) {
+                *mode = ABW_MODE_RO;
+                return 0;
+            }
+        }
     }
     rc = abw_policy_reverse(policy, host, virt);
     if (rc != 0) {
